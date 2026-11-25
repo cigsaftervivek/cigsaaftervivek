@@ -21,14 +21,12 @@ body {
   overflow: hidden;
 }
 
-/* Animated background */
 .background {
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(ellipse at 50% 50%,
-    #202020 0%, #090909 45%, #000 100%);
-  z-index: -2;
+  background: radial-gradient(ellipse at center,
+  #202020 0%, #090909 45%, #000 100%);
+  z-index: -3;
 }
 
 .glow {
@@ -36,12 +34,13 @@ body {
   width: 350px;
   height: 350px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,.07);
   filter: blur(100px);
   top: 30%;
   left: 50%;
   transform: translateX(-50%);
   animation: pulse 5s infinite alternate;
+  pointer-events: none;
 }
 
 @keyframes pulse {
@@ -71,7 +70,30 @@ body {
   to { transform: translateY(110vh); }
 }
 
-/* Main content */
+/* Lightning flash */
+.lightning {
+  position: fixed;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.lightning.flash {
+  animation: lightningFlash .45s ease-out;
+}
+
+@keyframes lightningFlash {
+  0% { opacity: 0; }
+  10% { opacity: .65; }
+  20% { opacity: .05; }
+  35% { opacity: .4; }
+  50% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* Content */
 .container {
   height: 100vh;
   width: 100%;
@@ -95,13 +117,8 @@ h1 {
   font-weight: 800;
   letter-spacing: 5px;
   margin: 30px 0;
-  color: #fff;
-  text-shadow:
-    0 0 10px #fff,
-    0 0 30px #888,
-    0 0 60px #555;
-  animation: nameGlow 3s infinite alternate,
-             fade 2s ease;
+  text-shadow: 0 0 10px white, 0 0 30px #888;
+  animation: nameGlow 3s infinite alternate, fade 2s ease;
 }
 
 @keyframes nameGlow {
@@ -114,23 +131,17 @@ h1 {
   width: 120px;
   background: linear-gradient(90deg, transparent, white, transparent);
   margin-bottom: 25px;
-  animation: expand 2s ease;
-}
-
-@keyframes expand {
-  from { width: 0; }
-  to { width: 120px; }
 }
 
 .subtitle {
   font-size: 12px;
   color: #aaa;
   letter-spacing: 5px;
-  animation: fade 3s ease;
 }
 
 .button {
-  margin-top: 40px;
+  display: inline-block;
+  margin-top: 25px;
   padding: 13px 30px;
   border: 1px solid #777;
   color: white;
@@ -139,12 +150,36 @@ h1 {
   font-size: 11px;
   letter-spacing: 3px;
   transition: .4s;
+  position: relative;
+  z-index: 5;
+  cursor: pointer;
 }
 
 .button:hover {
   background: white;
   color: black;
   box-shadow: 0 0 25px white;
+}
+
+.instagram {
+  border-color: #E1306C;
+}
+
+.instagram:hover {
+  background: #E1306C;
+  color: white;
+  box-shadow: 0 0 25px #E1306C;
+}
+
+.sound {
+  margin-top: 20px;
+  padding: 9px 15px;
+  color: #aaa;
+  background: transparent;
+  border: 1px solid #444;
+  font-size: 9px;
+  letter-spacing: 2px;
+  cursor: pointer;
 }
 
 footer {
@@ -167,8 +202,10 @@ footer {
 <div class="background"></div>
 <div class="glow"></div>
 <div class="rain" id="rain"></div>
+<div class="lightning" id="lightning"></div>
 
 <div class="container">
+
   <div class="welcome">WELCOME TO MY WORLD</div>
 
   <h1>VIVEK KASERA</h1>
@@ -176,32 +213,118 @@ footer {
   <div class="line"></div>
 
   <div class="subtitle">
-    small cirle peaceful life.
+    MY LIFE. MY RULES. MY WORLD.
   </div>
 
+  <a href="mailto:hello@example.com" class="button">
+    CONTACT ME
+  </a>
+
   <a href="https://www.instagram.com/vivek.kaseraa/"
-   class="button"
-   target="_blank"
-   rel="noopener noreferrer">
-   MY INSTAGRAM
-</a>
+     class="button instagram"
+     target="_blank"
+     rel="noopener noreferrer">
+     MY INSTAGRAM
+  </a>
+
+  <button class="sound" id="soundBtn">
+    THUNDER SOUND: OFF
+  </button>
 
   <footer>© 2026 VIVEK KASERA</footer>
+
 </div>
 
 <script>
+// Rain effect
 const rain = document.getElementById("rain");
 
-for (let i = 0; i < 65; i++) {
+for (let i = 0; i < 90; i++) {
   const drop = document.createElement("div");
   drop.className = "drop";
   drop.style.left = Math.random() * 100 + "%";
-  drop.style.animationDuration =
-    (0.5 + Math.random() * 1.5) + "s";
-  drop.style.animationDelay =
-    Math.random() * 3 + "s";
+  drop.style.animationDuration = (0.5 + Math.random() * 1.5) + "s";
+  drop.style.animationDelay = Math.random() * 3 + "s";
   rain.appendChild(drop);
 }
+
+// Thunder sound
+let audioContext;
+let soundEnabled = false;
+
+const soundBtn = document.getElementById("soundBtn");
+
+soundBtn.addEventListener("click", async () => {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  await audioContext.resume();
+
+  soundEnabled = !soundEnabled;
+  soundBtn.textContent = soundEnabled
+    ? "THUNDER SOUND: ON"
+    : "THUNDER SOUND: OFF";
+});
+
+function playThunder() {
+  if (!soundEnabled || !audioContext) return;
+
+  const duration = 3;
+  const buffer = audioContext.createBuffer(
+    1, audioContext.sampleRate * duration,
+    audioContext.sampleRate
+  );
+
+  const data = buffer.getChannelData(0);
+
+  for (let i = 0; i < data.length; i++) {
+    data[i] = (Math.random() * 2 - 1) *
+      (1 - i / data.length);
+  }
+
+  const source = audioContext.createBufferSource();
+  source.buffer = buffer;
+
+  const filter = audioContext.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 160;
+
+  const gain = audioContext.createGain();
+  gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+  gain.gain.exponentialRampToValueAtTime(
+    0.7, audioContext.currentTime + 0.15
+  );
+  gain.gain.exponentialRampToValueAtTime(
+    0.0001, audioContext.currentTime + duration
+  );
+
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioContext.destination);
+
+  source.start();
+}
+
+// Random lightning
+const lightning = document.getElementById("lightning");
+
+function strike() {
+  lightning.classList.remove("flash");
+  void lightning.offsetWidth;
+  lightning.classList.add("flash");
+
+  playThunder();
+
+  setTimeout(() => {
+    lightning.classList.remove("flash");
+  }, 500);
+
+  setTimeout(strike, 3000 + Math.random() * 7000);
+}
+
+setTimeout(strike, 2000);
+
 </script>
 
 </body>
