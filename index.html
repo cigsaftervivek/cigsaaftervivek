@@ -213,7 +213,7 @@ footer {
   <div class="line"></div>
 
   <div class="subtitle">
-    DARKNESS
+    MY LIFE. MY RULES. MY WORLD.
   </div>
 
   <a href="mailto:hello@example.com" class="button">
@@ -226,6 +226,10 @@ footer {
      rel="noopener noreferrer">
      MY INSTAGRAM
   </a>
+
+  <button class="sound" id="soundBtn">
+    THUNDER SOUND: OFF
+  </button>
 
   <footer>© 2026 VIVEK KASERA</footer>
 
@@ -257,6 +261,10 @@ soundBtn.addEventListener("click", async () => {
 
   await audioContext.resume();
 
+  soundEnabled = !soundEnabled;
+  soundBtn.textContent = soundEnabled
+    ? "THUNDER SOUND: ON"
+    : "THUNDER SOUND: OFF";
 });
 
 function playThunder() {
@@ -318,68 +326,6 @@ function strike() {
 setTimeout(strike, 2000);
 
 </script>
-<script>
-let audioContext;
 
-function playThunder() {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  }
-
-  if (audioContext.state === "suspended") {
-    audioContext.resume();
-  }
-
-  const duration = 3;
-  const buffer = audioContext.createBuffer(
-    1,
-    audioContext.sampleRate * duration,
-    audioContext.sampleRate
-  );
-
-  const data = buffer.getChannelData(0);
-
-  for (let i = 0; i < data.length; i++) {
-    data[i] = Math.random() * 2 - 1;
-  }
-
-  const source = audioContext.createBufferSource();
-  source.buffer = buffer;
-
-  const filter = audioContext.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.value = 120;
-
-  const gain = audioContext.createGain();
-  gain.gain.setValueAtTime(0.001, audioContext.currentTime);
-  gain.gain.linearRampToValueAtTime(0.35, audioContext.currentTime + 0.3);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
-
-  source.connect(filter);
-  filter.connect(gain);
-  gain.connect(audioContext.destination);
-
-  source.start();
-}
-
-document.addEventListener("click", function startSound() {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  }
-
-  audioContext.resume();
-  playThunder();
-
-  document.removeEventListener("click", startSound);
-});
-
-function thunderLoop() {
-  playThunder();
-  setTimeout(thunderLoop, 8000 + Math.random() * 7000);
-}
-
-setTimeout(thunderLoop, 3000);
-</script>
-</body>
 </body>
 </html>
